@@ -1,0 +1,46 @@
+{
+  "name": "discord-timestamp-kit",
+  "version": "0.1.0",
+  "description": "Make Discord <t:unix:F> timestamp codes, convert a local date and time in any IANA time zone to Unix (DST-safe), parse seconds or milliseconds, and decode Discord snowflake IDs. Zero dependencies.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build": "rm -rf dist && esbuild src/index.ts --bundle --format=esm --platform=neutral --target=es2022 --outfile=dist/index.js && tsc -p .",
+    "prepublishOnly": "npm run build && npm test",
+    "test": "tsx test/run.ts"
+  },
+  "keywords": [
+    "discord",
+    "timestamp",
+    "discord-timestamp",
+    "unix",
+    "snowflake",
+    "timezone"
+  ],
+  "homepage": "https://discordtimestampgen.com",
+  "license": "MIT",
+  "author": "Fazal (https://github.com/fazal-bhinder)",
+  "devDependencies": {
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "esbuild": "^0.28.2"
+  },
+  "types": "./dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fazal-bhinder/discord-timestamp-kit.git"
+  },
+  "bugs": "https://github.com/fazal-bhinder/discord-timestamp-kit/issues",
+  "sideEffects": false
+}
