@@ -1,6 +1,6 @@
 {
   "name": "discord-timestamp-kit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Make Discord <t:unix:F> timestamp codes, convert a local date and time in any IANA time zone to Unix (DST-safe), parse seconds or milliseconds, and decode Discord snowflake IDs. Zero dependencies.",
   "type": "module",
   "exports": {

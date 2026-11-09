@@ -26,6 +26,8 @@ for (const f of DISCORD_FORMATS) {
 // D Long Date        <t:1798765200:D>
 // f Short Date/Time  <t:1798765200:f>
 // F Long Date/Time   <t:1798765200:F>
+// s Short Date + Time  <t:1798765200:s>
+// S Short Date + Long Time <t:1798765200:S>
 // R Relative Time    <t:1798765200:R>
 ```
 
@@ -61,6 +63,7 @@ import { decodeSnowflake } from 'discord-timestamp-kit';
 const s = decodeSnowflake('175928847299117063');
 // { unixMs: 1462015105796, unixSeconds: 1462015105, workerId: 1, processId: 0, increment: 7 }
 new Date(s!.unixMs).toISOString();   // '2016-04-30T11:18:25.796Z'
+decodeSnowflake('https://discord.com/channels/81384788765712384/81384788765712384/175928847299117063'); // same result: message links work too
 ```
 
 Message, user, channel and server IDs are all snowflakes. The bit math uses BigInt, so IDs above `Number.MAX_SAFE_INTEGER` decode exactly. Pass the ID as a string.
@@ -70,7 +73,7 @@ Message, user, channel and server IDs are all snowflakes. The bit math uses BigI
 ```ts
 import { renderDiscordPreview } from 'discord-timestamp-kit';
 
-renderDiscordPreview(1798765200, 'F');                 // e.g. 'Thursday, December 31, 2026 8:00 PM'
+renderDiscordPreview(1798765200, 'F');                 // e.g. 'Thursday, December 31, 2026 at 8:00 PM'
 renderDiscordPreview(1798765200, 'R', 1798758000);     // 'in 2 hours'
 ```
 
@@ -80,7 +83,7 @@ The preview uses Discord's en-US layout, in the runtime's local time zone. The `
 
 | Export | What it does |
 |---|---|
-| `DISCORD_FORMATS` | The 7 format codes (`t T d D f F R`) with label, description and example |
+| `DISCORD_FORMATS` | The 9 format codes (`t T d D f F s S R`, in Discord's documented order) with label, description and example |
 | `buildTimestampCode(unix, code)` | Returns `<t:unix:code>` |
 | `dateTimeToUnixInTz(date, time, timeZone?)` | Converts a wall-clock date and time in an IANA zone to Unix seconds, DST-safe |
 | `parseUnixInput(raw)` | Parses an integer string in seconds or milliseconds, or returns `null` |

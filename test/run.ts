@@ -2,7 +2,7 @@
 // that matter are the ones a hand-rolled offset calculation gets wrong: DST boundaries.
 // Run with: npx tsx test/run.ts
 import assert from 'node:assert/strict';
-import { dateTimeToUnixInTz, renderDiscordPreview, buildTimestampCode, parseUnixInput, decodeSnowflake } from '../src/index.ts';
+import { DISCORD_FORMATS, dateTimeToUnixInTz, renderDiscordPreview, buildTimestampCode, parseUnixInput, decodeSnowflake, type DiscordFormatCode } from '../src/index.ts';
 
 const failures: string[] = [];
 function check(label: string, fn: () => void) {
@@ -70,6 +70,19 @@ check('blank input returns null', () => {
 });
 check('code syntax', () => {
   assert.equal(buildTimestampCode(1735689600, 'F'), '<t:1735689600:F>');
+});
+check('all 9 styles render (Discord docs order t T d D f F s S R)', () => {
+  const u = new Date(2018, 10, 28, 21, 1, 0).getTime() / 1000;
+  const want: Record<string, string> = { t: '9:01 PM', T: '9:01:00 PM', d: '11/28/2018', D: 'November 28, 2018',
+    f: 'November 28, 2018 at 9:01 PM', F: 'Wednesday, November 28, 2018 at 9:01 PM',
+    s: '11/28/2018, 9:01 PM', S: '11/28/2018, 9:01:00 PM' };
+  assert.deepEqual(DISCORD_FORMATS.map((f) => f.code), ['t', 'T', 'd', 'D', 'f', 'F', 's', 'S', 'R']);
+  for (const [c, v] of Object.entries(want)) assert.equal(renderDiscordPreview(u, c as DiscordFormatCode, u), v, c);
+});
+check('decodeSnowflake: accepts message links', () => {
+  const want = decodeSnowflake('175928847299117063')!.unixMs;
+  assert.equal(decodeSnowflake('https://discord.com/channels/81384788765712384/81384788765712384/175928847299117063')?.unixMs, want);
+  assert.equal(decodeSnowflake('https://evil.com/channels/1/2/3'), null);
 });
 check('relative format', () => {
   const now = 1_700_000_000;

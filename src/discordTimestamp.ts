@@ -2,7 +2,7 @@
 // and renders a preview string identical to what Discord's client shows.
 // Pure functions, no DOM — reused by the tool UI and by the engine test suite.
 
-export type DiscordFormatCode = 't' | 'T' | 'd' | 'D' | 'f' | 'F' | 'R';
+export type DiscordFormatCode = 't' | 'T' | 'd' | 'D' | 'f' | 'F' | 's' | 'S' | 'R';
 
 export interface DiscordFormat {
   code: DiscordFormatCode;
@@ -20,13 +20,25 @@ export const DISCORD_FORMATS: DiscordFormat[] = [
     code: 'f',
     label: 'Short Date/Time',
     description: "Discord's default when you paste a timestamp",
-    example: 'November 28, 2018 9:01 PM',
+    example: 'November 28, 2018 at 9:01 PM',
   },
   {
     code: 'F',
     label: 'Long Date/Time',
     description: 'Includes the day of the week',
-    example: 'Wednesday, November 28, 2018 9:01 PM',
+    example: 'Wednesday, November 28, 2018 at 9:01 PM',
+  },
+  {
+    code: 's',
+    label: 'Short Date + Time',
+    description: 'Numeric date with hours and minutes',
+    example: '11/28/2018, 9:01 PM',
+  },
+  {
+    code: 'S',
+    label: 'Short Date + Long Time',
+    description: 'Numeric date with seconds',
+    example: '11/28/2018, 9:01:00 PM',
   },
   {
     code: 'R',
@@ -77,7 +89,10 @@ export interface DecodedSnowflake {
  * converted back to a regular number.
  */
 export function decodeSnowflake(raw: string): DecodedSnowflake | null {
-  const trimmed = raw.trim();
+  // A pasted message link (discord.com/channels/<server>/<channel>/<message>, also ptb./canary.
+  // and the old discordapp.com) decodes to its last ID: the message itself.
+  const link = /^https?:\/\/(?:(?:ptb|canary)\.)?discord(?:app)?\.com\/channels\/(?:@me|\d+)\/\d+(?:\/(\d+))?\/?$/.exec(raw.trim());
+  const trimmed = link ? (link[1] ?? raw.trim().split('/').filter(Boolean).pop()!) : raw.trim();
   if (!/^\d{1,20}$/.test(trimmed)) return null;
   let id: bigint;
   try {
@@ -106,6 +121,10 @@ const MONTH_NAMES = [
 
 function pad(n: number): string {
   return n.toString().padStart(2, '0');
+}
+
+function shortDate(d: Date): string {
+  return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()}`;
 }
 
 function formatTime(d: Date, withSeconds: boolean): string {
@@ -162,13 +181,17 @@ export function renderDiscordPreview(
     case 'T':
       return formatTime(d, true);
     case 'd':
-      return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()}`;
+      return shortDate(d);
     case 'D':
       return `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
     case 'f':
-      return `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} ${formatTime(d, false)}`;
+      return `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} at ${formatTime(d, false)}`;
     case 'F':
-      return `${DAY_NAMES[d.getDay()]}, ${MONTH_NAMES[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} ${formatTime(d, false)}`;
+      return `${DAY_NAMES[d.getDay()]}, ${MONTH_NAMES[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} at ${formatTime(d, false)}`;
+    case 's':
+      return `${shortDate(d)}, ${formatTime(d, false)}`;
+    case 'S':
+      return `${shortDate(d)}, ${formatTime(d, true)}`;
     case 'R':
       return formatRelative(unixSeconds, nowSeconds);
     default:
