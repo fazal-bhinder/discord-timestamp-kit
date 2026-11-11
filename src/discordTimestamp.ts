@@ -255,6 +255,10 @@ export function dateTimeToUnixInTz(dateValue: string, timeValue: string, timeZon
     let actualUtc = utcGuess - offset1;
     const offset2 = offsetAt(actualUtc);
     if (offset2 !== offset1) actualUtc = utcGuess - offset2;
+    // A wall time inside a spring-forward gap (02:30 on the US change day) doesn't exist, and
+    // neither offset round-trips. Use the pre-gap offset so it lands an hour later (03:30),
+    // as JS Date and Temporal's 'compatible' mode do, rather than an hour earlier (01:30).
+    if (offsetAt(actualUtc) !== offset2) actualUtc = utcGuess - Math.min(offset1, offset2);
     return Math.floor(actualUtc / 1000);
   } catch {
     const date = new Date(y, m - 1, d, h, min, 0, 0);
